@@ -38,6 +38,21 @@ scene.add(cube);
 camera.position.set(0, 2, 5);
 camera.lookAt(0, 0, 0);
 
+//Making the cube turn using arrow keys
+function onDocumentKeydown(event){
+	var keyCode=event.which;
+	//arrow right - turn right
+	if (keyCode==39){
+		cube.position.x+=0.1;
+	}
+	//arrow left - turn left
+	if (keyCode==37){
+		cube.position.x-=0.1;
+	}
+
+}
+document.addEventListener('keydown',onDocumentKeydown,false);
+
 // Animate the prism moving forward
 function animate() {
     requestAnimationFrame(animate);
@@ -49,4 +64,7 @@ function animate() {
 	renderer.setAnimationLoop( function(){renderer.render(scene, camera);});
 }
 
+
 animate();
+
+

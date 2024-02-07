@@ -44,10 +44,12 @@ function onDocumentKeydown(event){
 	//arrow right - turn right
 	if (keyCode==39){
 		cube.position.x+=0.1;
+		cube.rotation.y+=0.1;
 	}
 	//arrow left - turn left
 	if (keyCode==37){
 		cube.position.x-=0.1;
+		cube.rotation.y=-0.1;
 	}
 
 }

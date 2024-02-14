@@ -55,8 +55,8 @@ scene.add(bus);
 // A class that hold all the properties about the bus
 class Bus_Prop {
     //Constants
-    Accel = 5;                          // Acceleration of the bus
-    Decel = -10;                        // Deceleration of the bus
+    Accel = -5;                          // Acceleration of the bus
+    Decel = +10;                        // Deceleration of the bus
     MaxVel = (70 * 1610) / 3600;        // Maximum Velocity of the bus
     MaxTurn = Math.PI * 0.20;           // Maximum angle of wheel turn
     Length = 5.250;                     // Length of the bus

@@ -86,6 +86,7 @@ class Bus_Prop {
     pos = new THREE.Vector2();          // Position of the bus
     joyVec = new THREE.Vector2();       // Related to joystick input, not implemented yet
     keys = new Array();                 // An array that holds the keycodes of each key input
+	braking = 0;
     
     // Momentum
     longitMomentum = 0;                 // Longitude momentum of the bus
@@ -124,6 +125,9 @@ class Bus_Prop {
                 case 68:// D
                     this.wAngleTarg -= this.MaxTurn;
                     break;
+				case 81:
+					this.braking = 1;
+					break;
             }
         }
     }
@@ -158,6 +162,7 @@ class Bus_Prop {
     update() {
         this.accel = 0;
         this.wAngleTarg = 0;
+		this.braking = 0;
 
         if (this.keys.length > 0) {
             this.readKeyboardInput();
@@ -170,10 +175,10 @@ class Bus_Prop {
         // Physics
         this.accel *= this.time;
         this.speed += this.accel;
-        // if (this.speed < 0) {
-        //     this.speed = 0;
-        //     this.accel = 0;
-        // }
+        if (this.speed < 0 && this.braking == 1) {
+            this.speed = 0;
+            this.accel = 0;
+        }
         if (this.speed < -5) {
             this.speed = -5;
             this.accel = 0;

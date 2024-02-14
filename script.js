@@ -1,7 +1,17 @@
-// Import statements might need to be adjusted based on your project setup
 import {VRButton} from './node_modules/webXR/VRButton.js'
 
-//setting up window
+// Some math functions for the physics
+function normalize(val, min, max) {
+    return Math.max(0, Math.min(1, (val - min) / (max - min)));
+}
+function normalizeQuadIn(val, min, max) {
+    return Math.pow(normalize(val, min, max), 2.0);
+}
+function zTween(_val, _target, _ratio) {
+    return _val + (_target - _val) * Math.min(_ratio, 1.0);
+}
+
+// Set up the window
 const scene = new THREE.Scene();
 const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
 const renderer = new THREE.WebGLRenderer();
@@ -13,8 +23,8 @@ renderer.xr.enabled = true;
 document.body.appendChild(VRButton.createButton(renderer));
 
 // Ground plane
-const planeGeometry = new THREE.PlaneGeometry(1000, 1000); // Adjusted size for visibility
-const planeMaterial = new THREE.MeshLambertMaterial({ color: 0xff0000, side: THREE.DoubleSide });
+const planeGeometry = new THREE.PlaneGeometry(1000, 1000);
+const planeMaterial = new THREE.MeshLambertMaterial({color: 0xff0000, side: THREE.DoubleSide});
 const plane = new THREE.Mesh(planeGeometry, planeMaterial);
 plane.rotation.x = -Math.PI / 2;
 scene.add(plane);
@@ -26,54 +36,49 @@ const directionalLight = new THREE.DirectionalLight(0xffffff, 1);
 directionalLight.position.set(0, 1, 0);
 scene.add(directionalLight);
 
+// Camera position
 camera.position.set(0, 4, 5);
 camera.lookAt(0, 0, 0);
 
-// Cube (Rectangular Prism)
+// Bus (A Rectangular Prism for now)
 const geometry = new THREE.BoxGeometry(1, 1, 1);
 const material = new THREE.MeshPhongMaterial({ color: 0x00ff00 });
-const cube = new THREE.Mesh(geometry, material);
-scene.add(cube);
+const bus = new THREE.Mesh(geometry, material);
+scene.add(bus);
 
-function normalize(val, min, max) {
-    return Math.max(0, Math.min(1, (val - min) / (max - min)));
-}
-function normalizeQuadIn(val, min, max) {
-    return Math.pow(normalize(val, min, max), 2.0);
-}
-function zTween(_val, _target, _ratio) {
-    return _val + (_target - _val) * Math.min(_ratio, 1.0);
-}
-
-class Cube {
-    Accel = 5; // m/s^2
-    Decel = -10; // m/s^2
-    MaxVel = (70 * 1610) / 3600; // 70m/h ~= 31.3m/s
-    MaxTurn = Math.PI * 0.20; // Max angle of wheel turn
-    Length = 5.250; // Car length
-    Width = 2.283; // Car width
-    WheelTrack = 1.72; // Wheel track
-    WheelBase = 3.200; // Wheel base
-    WheelDiam = 0.780; // Wheel diameter
-    WheelCirc = 0.780 * Math.PI; // Wheel circumference
+// A class that hold all the properties about the bus
+class Bus_Prop {
+    //Constants
+    Accel = 5;                          // Acceleration of the bus
+    Decel = -10;                        // Deceleration of the bus
+    MaxVel = (70 * 1610) / 3600;        // Maximum Velocity of the bus
+    MaxTurn = Math.PI * 0.20;           // Maximum angle of wheel turn
+    Length = 5.250;                     // Length of the bus
+    Width = 2.283;                      // Width of the bus
+    WheelTrack = 1.72;                  // Wheel track
+    WheelBase = 3.200;                  // Wheel base
+    WheelDiam = 0.780;                  // Wheel diameter
+    WheelCirc = 0.780 * Math.PI;        // Wheel circumference
     
-    time = 0.01;
-    velocity = new THREE.Vector2();
-    speed = 0;
-    accel = 0;
-    pos = new THREE.Vector2();
-    joyVec = new THREE.Vector2();
-    // Momentim
-    longitMomentum = 0;
-    lateralMomentum = 0;
-    wAngleInner = 0;
-    wAngleOuter = 0;
+    //Variables
+    time = 0.01;                        // Time elapsed since last update in seconds
+    velocity = new THREE.Vector2();     // Current linear velocity vector of the bus
+    speed = 0;                          // Current speed of the bus
+    accel = 0;                          // Current acceleration of the bus
+    pos = new THREE.Vector2();          // Position of the bus
+    //joyVec = new THREE.Vector2();     // Related to joystick input, not implemented yet
+    keys = new Array();                 // An array that holds the keycodes of each key input
+    
+    // Momentum
+    longitMomentum = 0;                 // Longitude momentum of the bus
+    lateralMomentum = 0;                // Lateral momentum of the bus
+    wAngleInner = 0;                    // Inner wheel angle of the bus
+    wAngleOuter = 0;                    // Outer wheel angle of the bus
     wAngleTarg = 0;
-    keys = new Array();
-    braking = 0.0;
-    omega = 0;
-    theta = -Math.PI / 2;
+    omega = 0;                          // Angular velocity of the bus
+    theta = -Math.PI / 2;               // Angle of rotation of the bus
 
+    // Functions related to keyboard input
     onKeyDown(evt) {
         // Add key to list if they don't exist yet
         if (this.keys.indexOf(evt.keyCode) === -1) {
@@ -87,40 +92,38 @@ class Cube {
     readKeyboardInput() {
         for (var i = 0; i < this.keys.length; i++) {
             switch (this.keys[i]) {
-                case 87:// Up
+                case 87:// W
                     this.accel += this.Accel;
-                    // Simulate wind resistance as we reach top speed
+                    // Simulate wind resistance as the bus reaches top speed
                     this.accel *= normalizeQuadIn(this.speed, this.MaxVel, this.MaxVel - 10);
                     break;
-                case 83:// Down
+                case 83:// S
                     this.accel += this.Decel;
-                    this.braking = 1;
                     break;
-                case 65:// Left
+                case 65:// A
                     this.wAngleTarg += this.MaxTurn;
                     break;
-                case 68:// Right
+                case 68:// D
                     this.wAngleTarg -= this.MaxTurn;
                     break;
             }
         }
     }
 
+    // Functions related to game update
     update = function (_time) {
-        // Update time, skips according to FPS
-        // if (this.time.update(_time) === false) {
-        //     return false;
-        // }
         this.accel = 0;
-        this.braking = 0;
         this.wAngleTarg = 0;
+
         if (this.keys.length > 0) {
             this.readKeyboardInput();
         }
+        // Related to joystick input, not implemented yet
         // else if (this.joyVec.x != 0 || this.joyVec.y != 0) {
         //     this.readJoyStickInput();
         // }
-        ///////////////// PHYSICS, YO! /////////////////
+
+        // Physics
         this.accel *= this.time;
         this.speed += this.accel;
         if (this.speed < 0) {
@@ -135,76 +138,53 @@ class Cube {
         // Theta is based on speed, wheelbase & wheel angle
         this.omega = this.wAngleInner * this.speed / this.WheelBase;
         this.theta += this.omega * this.time;
-        // Calc this frame's XY velocity
+        // Calculate the XY velocity
         this.velocity.set(Math.cos(this.theta) * this.frameDist, -Math.sin(this.theta) * this.frameDist);
-        // Add velocity to total position
+        // Add velocity to position
         this.pos.add(this.velocity);
         
-        //console.log(this.pos);
-        
+        //console.log(this.pos);        // For debugging
 
-        // Fake some momentum
-        this.longitMomentum = zTween(this.longitMomentum, this.accel / this.time, this.time * 6);
-        this.lateralMomentum = this.omega * this.speed;
-        if (this.wAngleSign) {
-            // Calculate 4 wheel turning radius if angle
-            this.radFrontIn = this.WheelBase / Math.sin(this.wAngleInner);
-            this.radBackIn = this.WheelBase / Math.tan(this.wAngleInner);
-            this.radBackOut = this.radBackIn + (this.WheelTrack * this.wAngleSign);
-            this.wAngleOuter = Math.atan(this.WheelBase / this.radBackOut);
-            this.radFrontOut = this.WheelBase / Math.sin(this.wAngleOuter);
-        }
-        else {
-            // Otherwise, just assign a very large radius.
-            this.radFrontOut = 100;
-            this.radBackOut = 100;
-            this.radBackIn = 100;
-            this.radFrontIn = 100;
-            this.wAngleOuter = 0;
-        }
+        // Set the bus's position and rotation
+        bus.position.x = -this.pos.x;
+        bus.position.z = -this.pos.y;
+        bus.rotation.y = this.theta; 
 
-        cube.position.x = -this.pos.x;
-        cube.position.z = -this.pos.y;
-        cube.rotation.y = this.theta;
+        // Momentum for the bus body, not sure if we will implement this
+        // this.longitMomentum = zTween(this.longitMomentum, this.accel / this.time, this.time * 6);
+        // this.lateralMomentum = this.omega * this.speed;
+        // if (this.wAngleSign) {
+        //     // Calculate 4 wheel turning radius if angle
+        //     this.radFrontIn = this.WheelBase / Math.sin(this.wAngleInner);
+        //     this.radBackIn = this.WheelBase / Math.tan(this.wAngleInner);
+        //     this.radBackOut = this.radBackIn + (this.WheelTrack * this.wAngleSign);
+        //     this.wAngleOuter = Math.atan(this.WheelBase / this.radBackOut);
+        //     this.radFrontOut = this.WheelBase / Math.sin(this.wAngleOuter);
+        // }
+        // else {
+        //     // Otherwise, just assign a very large radius.
+        //     this.radFrontOut = 100;
+        //     this.radBackOut = 100;
+        //     this.radBackIn = 100;
+        //     this.radFrontIn = 100;
+        //     this.wAngleOuter = 0;
+        // }
+
         return true;
     }
 }
 
-// const keyStates = {};
+// Make an instance of the class, and add event listeners to track key input
+const Bus1 = new Bus_Prop();
+window.addEventListener("keydown", Bus1.onKeyDown.bind(Bus1));
+window.addEventListener("keyup", Bus1.onKeyUp.bind(Bus1));
 
-// window.addEventListener('keydown', (event) => keyStates[event.key] = true);
-// window.addEventListener('keyup', (event) => keyStates[event.key] = false);
-
-// function moveCube() {
-//     if (keyStates['w'] || keyStates['ArrowUp']) {
-//         speed -= 0.02;
-//     }
-//     if (keyStates['a'] || keyStates['ArrowLeft']) {
-//         cube.position.x -= 0.1;
-
-// 		//cube.rotation.y+=0.03;
-		
-//     }
-//     if (keyStates['s'] || keyStates['ArrowDown']) {
-//         speed += 0.02;
-//     }
-//     if (keyStates['d'] || keyStates['ArrowRight']) {
-//         cube.position.x += 0.1;
-//     }
-    
-// }
-const Cube1 = new Cube();
-window.addEventListener("keydown", Cube1.onKeyDown.bind(Cube1));
-window.addEventListener("keyup", Cube1.onKeyUp.bind(Cube1));
-
-
+// Animation loop
 function animate() {
     renderer.setAnimationLoop(() => {
-        Cube1.update();
-        //moveCube();
+        Bus1.update();
         renderer.render(scene, camera);
     });
 }
 
 animate();
-

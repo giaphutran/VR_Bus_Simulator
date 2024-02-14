@@ -1,6 +1,5 @@
 import {VRButton} from './node_modules/webXR/VRButton.js'
-
-// Some math functions for the physics
+// import {GLTFLoader} from './node_modules/addons/loaders/GLTFLoader.js' not working
 function normalize(val, min, max) {
     return Math.max(0, Math.min(1, (val - min) / (max - min)));
 }
@@ -10,6 +9,19 @@ function normalizeQuadIn(val, min, max) {
 function zTween(_val, _target, _ratio) {
     return _val + (_target - _val) * Math.min(_ratio, 1.0);
 }
+
+//3d model car not working
+// const loader = new GLTFLoader();
+
+// loader.load( './3dmodels/mercedes/uploads_files_2787791_Mercedes+Benz+GLS+580.fbx', function ( gltf ) {
+
+// 	scene.add( gltf.scene );
+
+// }, undefined, function ( error ) {
+
+// 	console.error( error );
+
+// } );
 
 // Set up the window
 const scene = new THREE.Scene();
@@ -189,25 +201,25 @@ class Bus_Prop {
         camera.position.set(bus.position.x + 5 * Math.sin(this.theta+Math.PI/2), 4, bus.position.z + 5 * Math.cos(this.theta+Math.PI/2));
         camera.lookAt(bus.position);
 
-        // Momentum for the bus body, not sure if we will implement this
-        // this.longitMomentum = zTween(this.longitMomentum, this.accel / this.time, this.time * 6);
-        // this.lateralMomentum = this.omega * this.speed;
-        // if (this.wAngleSign) {
-        //     // Calculate 4 wheel turning radius if angle
-        //     this.radFrontIn = this.WheelBase / Math.sin(this.wAngleInner);
-        //     this.radBackIn = this.WheelBase / Math.tan(this.wAngleInner);
-        //     this.radBackOut = this.radBackIn + (this.WheelTrack * this.wAngleSign);
-        //     this.wAngleOuter = Math.atan(this.WheelBase / this.radBackOut);
-        //     this.radFrontOut = this.WheelBase / Math.sin(this.wAngleOuter);
-        // }
-        // else {
-        //     // Otherwise, just assign a very large radius.
-        //     this.radFrontOut = 100;
-        //     this.radBackOut = 100;
-        //     this.radBackIn = 100;
-        //     this.radFrontIn = 100;
-        //     this.wAngleOuter = 0;
-        // }
+        //Momentum for the bus body, not sure if we will implement this
+        this.longitMomentum = zTween(this.longitMomentum, this.accel / this.time, this.time * 6);
+        this.lateralMomentum = this.omega * this.speed;
+        if (this.wAngleSign) {
+            // Calculate     4 wheel turning radius if angle
+            this.radFrontIn = this.WheelBase / Math.sin(this.wAngleInner);
+            this.radBackIn = this.WheelBase / Math.tan(this.wAngleInner);
+            this.radBackOut = this.radBackIn + (this.WheelTrack * this.wAngleSign);
+            this.wAngleOuter = Math.atan(this.WheelBase / this.radBackOut);
+            this.radFrontOut = this.WheelBase / Math.sin(this.wAngleOuter);
+        }
+        else {
+            // Otherwise, just assign a very large radius.
+            this.radFrontOut = 100;
+            this.radBackOut = 100;
+            this.radBackIn = 100;
+            this.radFrontIn = 100;
+            this.wAngleOuter = 0;
+        }
 
         return true;
     }

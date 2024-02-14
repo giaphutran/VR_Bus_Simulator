@@ -40,6 +40,12 @@ scene.add(directionalLight);
 camera.position.set(0, 4, 5);
 camera.lookAt(0, 0, 0);
 
+// A blue prism for testing and demostration
+const geometry0 = new THREE.BoxGeometry(1, 5, 1);
+const material0 = new THREE.MeshPhongMaterial({ color: 0x0000ff });
+const prism = new THREE.Mesh(geometry0, material0);
+scene.add(prism);
+
 // Bus (A Rectangular Prism for now)
 const geometry = new THREE.BoxGeometry(1, 1, 1);
 const material = new THREE.MeshPhongMaterial({ color: 0x00ff00 });
@@ -126,8 +132,12 @@ class Bus_Prop {
         // Physics
         this.accel *= this.time;
         this.speed += this.accel;
-        if (this.speed < 0) {
-            this.speed = 0;
+        // if (this.speed < 0) {
+        //     this.speed = 0;
+        //     this.accel = 0;
+        // }
+        if (this.speed < -5) {
+            this.speed = -5;
             this.accel = 0;
         }
         this.frameDist = this.speed * this.time;
@@ -149,6 +159,9 @@ class Bus_Prop {
         bus.position.x = -this.pos.x;
         bus.position.z = -this.pos.y;
         bus.rotation.y = this.theta; 
+        // Update camera view
+        camera.position.set(bus.position.x + 5 * Math.sin(this.theta+Math.PI/2), 4, bus.position.z + 5 * Math.cos(this.theta+Math.PI/2));
+        camera.lookAt(bus.position);
 
         // Momentum for the bus body, not sure if we will implement this
         // this.longitMomentum = zTween(this.longitMomentum, this.accel / this.time, this.time * 6);

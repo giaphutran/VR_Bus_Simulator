@@ -160,7 +160,12 @@ class Bus_Prop {
 
     // Functions related to game update
     update() {
-        this.accel = 0;
+		if (this.speed > 0)
+        	this.accel = -1;
+		else if (this.speed < 0)
+			this.accel = 3;
+		else 
+			this.accel = 0;
         this.wAngleTarg = 0;
 		this.braking = 0;
 

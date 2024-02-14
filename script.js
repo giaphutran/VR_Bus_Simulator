@@ -13,7 +13,7 @@ function zTween(_val, _target, _ratio) {
 
 // Set up the window
 const scene = new THREE.Scene();
-const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+const camera = new THREE.PerspectiveCamera(90, window.innerWidth / window.innerHeight, 0.1, 1000);
 const renderer = new THREE.WebGLRenderer();
 renderer.setSize(window.innerWidth, window.innerHeight);
 document.body.appendChild(renderer.domElement);
@@ -72,7 +72,7 @@ class Bus_Prop {
     speed = 0;                          // Current speed of the bus
     accel = 0;                          // Current acceleration of the bus
     pos = new THREE.Vector2();          // Position of the bus
-    //joyVec = new THREE.Vector2();     // Related to joystick input, not implemented yet
+    joyVec = new THREE.Vector2();       // Related to joystick input, not implemented yet
     keys = new Array();                 // An array that holds the keycodes of each key input
     
     // Momentum
@@ -116,8 +116,34 @@ class Bus_Prop {
         }
     }
 
+    // // Functions related to joystick input
+    // onJoystickMove(_vec) {
+    //     this.joyVec.x = _vec.x / -40;
+    //     this.joyVec.y = _vec.y / -40;
+    //     if (Math.abs(this.joyVec.x) > 0.85) {
+    //         this.joyVec.y = 0;
+    //     }
+    //     if (Math.abs(this.joyVec.y) > 0.95) {
+    //         this.joyVec.x = 0;
+    //     }
+    // };
+    // readJoyStickInput() {
+    //     this.wAngleTarg = this.joyVec.x * this.MaxTurn;
+    //     //Accelerating
+    //     if (this.joyVec.y >= 0) {
+    //         this.accel = this.joyVec.y * this.Accel;
+    //         // Simulate wind resistance as we reach top speed
+    //         this.accel *= normalizeQuadIn(this.speed, this.MaxVel, this.MaxVel - 10);
+    //         this.braking = 0;
+    //     }
+    //     else {
+    //         this.accel = this.joyVec.y * -this.Decel;
+    //         this.braking = 1;
+    //     }
+    // };
+
     // Functions related to game update
-    update = function (_time) {
+    update() {
         this.accel = 0;
         this.wAngleTarg = 0;
 
@@ -155,7 +181,7 @@ class Bus_Prop {
         
         //console.log(this.pos);        // For debugging
 
-        // Set the bus's position and rotation
+        // Update the bus's position and rotation
         bus.position.x = -this.pos.x;
         bus.position.z = -this.pos.y;
         bus.rotation.y = this.theta; 
